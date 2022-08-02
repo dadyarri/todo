@@ -54,6 +54,14 @@ proc getTasks(): JsonNode =
 
   return taskObject
 
+proc findTaskById(taskId: int): JsonNode = 
+  let tasksObject = getTasks()
+  let tasks = getTasksList(tasksObject)
+
+  for task in tasks:
+    if task{"id"}.getInt() == taskId:
+      return task
+
 
 proc i() = 
   ## Init config file with default options
@@ -111,7 +119,26 @@ proc cr(taskName: string, priority: int = 1): string =
 
 proc dl(taskId: int) = 
   ## Delete a task by id
-  discard
+  let config = getConfig()
+  let taskFilePath = config["files"]["list"].getStr()
+  let taskToDelete = findTaskById(taskId)
+  let tasksObject = getTasks()
+  let tasks = getTasksList(tasksObject)
+
+  var newTasksList = newJArray()
+
+  for task in tasks:
+    if task != taskToDelete:
+      newTasksList.add(task)
+
+  tasksObject.add("tasks", newTasksList)
+  
+  let taskStr = $tasksObject
+  let taskFile = open(taskFilePath, FileMode.fmWrite)
+
+  defer: taskFile.close()
+
+  taskFile.write(taskStr)
 
 
 proc fi(taskId: int) = 
