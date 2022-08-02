@@ -1,5 +1,6 @@
 import os
 import std/tables
+import strutils
 import json
 
 import parsetoml
@@ -52,7 +53,32 @@ proc i() =
 
 proc cr(taskName: string, priority: int = 1): string =
   ## Create a task
-  return getConfig().toJson().pretty()
+  let config = getConfig()
+  let taskFilePath = config["files"]["list"].getStr()
+  
+  if not fileExists(taskFilePath):
+    discard execShellCmd("touch " & taskFilePath)
+
+  let taskObject = parseToml.parseFile(taskFilePath)
+  
+  var tasks = newTTable()
+  if taskObject.hasKey("tasks"):
+    tasks = taskObject["tasks"]
+
+  var newTask = newTTable()
+
+  taskObject.add("tasks", tasks)
+  tasks.add(taskName.replace(" ", "-"), newTask)
+  newTask.add("name", newTString(taskName))
+  newTask.add("priority", newTInt(priority))
+
+
+  let taskStr = parsetoml.toTomlString(taskObject)
+  let taskFile = open(taskFilePath, FileMode.fmWrite)
+
+  defer: taskFile.close()
+
+  taskFile.write(taskStr)
 
 proc dl(taskId: int) = 
   ## Delete a task by id
