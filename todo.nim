@@ -24,9 +24,9 @@ proc i() =
   ## Init config file with default options
 
   if tryGetConfig() == nil:
-    let configDirPath = getHomeDir() & "/.config/todo"
+    let configDirPath = getHomeDir() & ".config/todo"
     let configFilePath = configDirPath & "/config.toml"
-    let todoHomeDir = getHomeDir() & "/.local/share/todo"
+    let todoHomeDir = getHomeDir() & ".local/share/todo"
 
     let config = newTTable()
     let filesBlock = newTTable()
