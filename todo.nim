@@ -21,6 +21,8 @@ proc getConfig(): TomlValueRef =
 
 
 proc i() = 
+  ## Init config file with default options
+
   if tryGetConfig() == nil:
     let configDirPath = getHomeDir() & "/.config/todo"
     let configFilePath = configDirPath & "/config.toml"
