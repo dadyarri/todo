@@ -21,22 +21,22 @@ proc getConfig(): TomlValueRef =
   else:
     return config
 
-proc getTasksList(taskObject: TomlValueRef): TomlValueRef = 
-  var tasks = newTTable()
+proc getTasksList(taskObject: JsonNode): JsonNode = 
+  var tasks = newJArray()
   if taskObject.hasKey("tasks"):
     tasks = taskObject["tasks"]
 
   return tasks
 
 
-proc getTasks(): TomlValueRef = 
+proc getTasks(): JsonNode = 
   let config = getConfig()
   let taskFilePath = config["files"]["list"].getStr()
   
   if not fileExists(taskFilePath):
-    discard execShellCmd("touch " & taskFilePath)
+    discard execShellCmd("echo '{}' > " & taskFilePath)
 
-  let taskObject = parseToml.parseFile(taskFilePath)
+  let taskObject = json.parseFile(taskFilePath)
   
   taskObject.add("tasks", getTasksList(taskObject))
 
@@ -55,7 +55,7 @@ proc i() =
     let filesBlock = newTTable()
     
     config.add("files", filesBlock)
-    filesBlock.add("list", newTString(todoHomeDir & "/list.toml"))
+    filesBlock.add("list", newTString(todoHomeDir & "/list.json"))
     
     createDir(configDirPath)
     createDir(todoHomeDir)
@@ -81,14 +81,15 @@ proc cr(taskName: string, priority: int = 1): string =
 
   var taskObject = getTasks()
   var tasks = getTasksList(taskObject)
-  var newTask = newTTable()
+  var newTask = newJObject()
 
-  tasks.add($(hash(taskName)), newTask)
-  newTask.add("name", newTString(taskName))
-  newTask.add("priority", newTInt(priority))
+  tasks.add(newTask)
+  newTask.add("id", newJString($(hash(taskName))))
+  newTask.add("name", newJString(taskName))
+  newTask.add("priority", newJInt(priority))
 
 
-  let taskStr = parsetoml.toTomlString(taskObject)
+  let taskStr = $taskObject
   let taskFile = open(taskFilePath, FileMode.fmWrite)
 
   defer: taskFile.close()
@@ -106,7 +107,11 @@ proc fi(taskId: int) =
 
 proc li() = 
   ## List active tasks
-  discard
+  var taskObject = getTasks()
+  var tasks = getTasksList(taskObject)
+
+  for task in tasks:
+    echo task{"name"}.getStr()
 
 proc ta(tagName: string) = 
   ## Add tag
