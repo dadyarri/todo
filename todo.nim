@@ -88,6 +88,7 @@ proc cr(taskName: string, priority: int = 1): string =
   newTask.add("id", newJString($(hash(taskName))))
   newTask.add("name", newJString(taskName))
   newTask.add("priority", newJInt(priority))
+  newTask.add("status", newJString("to-do"))
 
 
   let taskStr = $taskObject
@@ -112,11 +113,11 @@ proc li() =
   var tasks = getTasksList(taskObject)
 
   let table = newUnicodeTable()
-  table.setHeaders(@["Id", "Name", "Priority"])
+  table.setHeaders(@["Id", "Name", "Priority", "Status"])
   table.separateRows = false
 
   for task in tasks:
-    table.addRow(@[$(task{"id"}.getStr()), task{"name"}.getStr(), $(task{"priority"}.getInt())])
+    table.addRow(@[$(task{"id"}.getStr()), task{"name"}.getStr(), $(task{"priority"}.getInt()), task{"status"}.getStr()])
 
   table.printTable()
 
