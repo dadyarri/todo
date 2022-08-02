@@ -30,6 +30,17 @@ proc getTasksList(taskObject: JsonNode): JsonNode =
   return tasks
 
 
+proc getMaxId(tasks: JsonNode): int = 
+  var maxId = 0
+  var curId = 0
+  for task in tasks:
+    curId = task{"id"}.getInt()
+    if curId > maxId:
+      maxId = curId
+
+  return maxId
+
+
 proc getTasks(): JsonNode = 
   let config = getConfig()
   let taskFilePath = config["files"]["list"].getStr()
@@ -85,7 +96,7 @@ proc cr(taskName: string, priority: int = 1): string =
   var newTask = newJObject()
 
   tasks.add(newTask)
-  newTask.add("id", newJString($(hash(taskName))))
+  newTask.add("id", newJInt(getMaxId(tasks) + 1))
   newTask.add("name", newJString(taskName))
   newTask.add("priority", newJInt(priority))
   newTask.add("status", newJString("to-do"))
@@ -117,7 +128,7 @@ proc li() =
   table.separateRows = false
 
   for task in tasks:
-    table.addRow(@[$(task{"id"}.getStr()), task{"name"}.getStr(), $(task{"priority"}.getInt()), task{"status"}.getStr()])
+    table.addRow(@[$(task{"id"}.getInt()), task{"name"}.getStr(), $(task{"priority"}.getInt()), task{"status"}.getStr()])
 
   table.printTable()
 
