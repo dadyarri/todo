@@ -5,6 +5,7 @@ import strutils
 import json
 
 import parsetoml
+import terminaltables
 
 proc tryGetConfig(): TomlValueRef = 
   var configPath = getHomeDir() & "/.config/todo/config.toml"
@@ -110,8 +111,14 @@ proc li() =
   var taskObject = getTasks()
   var tasks = getTasksList(taskObject)
 
+  let table = newUnicodeTable()
+  table.setHeaders(@["Id", "Name", "Priority"])
+  table.separateRows = false
+
   for task in tasks:
-    echo task{"name"}.getStr()
+    table.addRow(@[$(task{"id"}.getStr()), task{"name"}.getStr(), $(task{"priority"}.getInt())])
+
+  table.printTable()
 
 proc ta(tagName: string) = 
   ## Add tag
