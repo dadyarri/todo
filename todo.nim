@@ -21,6 +21,27 @@ proc getConfig(): TomlValueRef =
   else:
     return config
 
+proc getTasksList(taskObject: TomlValueRef): TomlValueRef = 
+  var tasks = newTTable()
+  if taskObject.hasKey("tasks"):
+    tasks = taskObject["tasks"]
+
+  return tasks
+
+
+proc getTasks(): TomlValueRef = 
+  let config = getConfig()
+  let taskFilePath = config["files"]["list"].getStr()
+  
+  if not fileExists(taskFilePath):
+    discard execShellCmd("touch " & taskFilePath)
+
+  let taskObject = parseToml.parseFile(taskFilePath)
+  
+  taskObject.add("tasks", getTasksList(taskObject))
+
+  return taskObject
+
 
 proc i() = 
   ## Init config file with default options
@@ -56,19 +77,11 @@ proc cr(taskName: string, priority: int = 1): string =
   ## Create a task
   let config = getConfig()
   let taskFilePath = config["files"]["list"].getStr()
-  
-  if not fileExists(taskFilePath):
-    discard execShellCmd("touch " & taskFilePath)
 
-  let taskObject = parseToml.parseFile(taskFilePath)
-  
-  var tasks = newTTable()
-  if taskObject.hasKey("tasks"):
-    tasks = taskObject["tasks"]
 
+  var taskObject = getTasks()
+  var tasks = getTasksList(taskObject)
   var newTask = newTTable()
-
-  taskObject.add("tasks", tasks)
 
   tasks.add($(hash(taskName)), newTask)
   newTask.add("name", newTString(taskName))
