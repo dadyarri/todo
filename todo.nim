@@ -62,6 +62,20 @@ proc findTaskById(taskId: int): JsonNode =
     if task{"id"}.getInt() == taskId:
       return task
 
+proc rewriteTasksList(newTasksList: JsonNode) = 
+  let config = getConfig()
+  let taskFilePath = config["files"]["list"].getStr()
+  let tasksObject = getTasks()
+
+  tasksObject.add("tasks", newTasksList)
+
+  let taskStr = $tasksObject
+  let taskFile = open(taskFilePath, FileMode.fmWrite)
+
+  defer: taskFile.close()
+
+  taskFile.write(taskStr)
+
 
 proc i() = 
   ## Init config file with default options
@@ -95,10 +109,6 @@ proc i() =
 
 proc cr(taskName: string, priority: int = 1): string =
   ## Create a task
-  let config = getConfig()
-  let taskFilePath = config["files"]["list"].getStr()
-
-
   var taskObject = getTasks()
   var tasks = getTasksList(taskObject)
   var newTask = newJObject()
@@ -109,18 +119,10 @@ proc cr(taskName: string, priority: int = 1): string =
   newTask.add("priority", newJInt(priority))
   newTask.add("status", newJString("to-do"))
 
-
-  let taskStr = $taskObject
-  let taskFile = open(taskFilePath, FileMode.fmWrite)
-
-  defer: taskFile.close()
-
-  taskFile.write(taskStr)
+  rewriteTasksList(tasks)
 
 proc dl(taskId: int) = 
   ## Delete a task by id
-  let config = getConfig()
-  let taskFilePath = config["files"]["list"].getStr()
   let taskToDelete = findTaskById(taskId)
   let tasksObject = getTasks()
   let tasks = getTasksList(tasksObject)
@@ -131,14 +133,7 @@ proc dl(taskId: int) =
     if task != taskToDelete:
       newTasksList.add(task)
 
-  tasksObject.add("tasks", newTasksList)
-  
-  let taskStr = $tasksObject
-  let taskFile = open(taskFilePath, FileMode.fmWrite)
-
-  defer: taskFile.close()
-
-  taskFile.write(taskStr)
+  rewriteTasksList(newTasksList)
 
 
 proc fi(taskId: int) = 
