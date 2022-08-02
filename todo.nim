@@ -138,7 +138,15 @@ proc dl(taskId: int) =
 
 proc fi(taskId: int) = 
   ## Finish a task
-  discard
+  let taskToFinish = findTaskById(taskId)
+  let tasksObject = getTasks()
+  let tasks = getTasksList(tasksObject)
+
+  for task in tasks:
+    if task == taskToFinish:
+      task["status"] = newJString("done")
+
+  rewriteTasksList(tasks)
 
 proc li() = 
   ## List active tasks
