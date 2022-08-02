@@ -1,5 +1,6 @@
 import os
 import std/tables
+import std/hashes
 import strutils
 import json
 
@@ -68,7 +69,8 @@ proc cr(taskName: string, priority: int = 1): string =
   var newTask = newTTable()
 
   taskObject.add("tasks", tasks)
-  tasks.add(taskName.replace(" ", "-"), newTask)
+
+  tasks.add($(hash(taskName)), newTask)
   newTask.add("name", newTString(taskName))
   newTask.add("priority", newTInt(priority))
 
